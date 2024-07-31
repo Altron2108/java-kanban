@@ -63,8 +63,11 @@ public class TaskManager {
     }
 
     public void removeAllSubtasks() {
-        subtasks.clear();
-        epics.values().forEach(epic -> epic.getSubtaskIds().clear());
+        subtasks.clear(); // Удаляем все подзадачи
+        epics.values().forEach(epic -> {
+            epic.getSubtaskIds().clear(); // Очищаем список ID подзадач у каждого эпика
+            updateEpicStatus(epic.getId()); // Обновляем статус каждого эпика
+        });
     }
 
     public void deleteSubtaskById(int id) {
