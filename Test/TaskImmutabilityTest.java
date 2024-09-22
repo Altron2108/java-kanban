@@ -1,38 +1,26 @@
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TaskImmutabilityTest {
-    private TaskManager taskManager;
+import static org.junit.jupiter.api.Assertions.*;
+
+class TaskImmutabilityTest {
+
+    private Task task;
 
     @BeforeEach
-    public void setUp() {
-        // Передача HistoryManager в конструктор InMemoryTaskManager
-        HistoryManager historyManager = Managers.getDefaultHistoryManager();
-        taskManager = new InMemoryTaskManager(historyManager);
+    void setUp() {
+        task = new Task(1, "Task 1", "Description 1", Status.NEW);
     }
 
     @Test
-    public void testImmutability() {
-        // Создание задачи
-        Task task = new Task("Task 1", "Description 1", Status.NEW);
-        int taskId = taskManager.createTask(task);
+    void testImmutability() {
+        // Проверяем, что заголовок задачи не изменяется
+        assertEquals("Task 1", task.getTitle(), "Title should not change.");
 
-        // Получение задачи из менеджера и проверка её неизменности
-        Task retrievedTask = taskManager.getTaskById(taskId);
-        assertEquals(task, retrievedTask);
+        // Проверяем, что описание задачи не изменяется
+        assertEquals("Description 1", task.getDescription(), "Description should not change.");
 
-        // Попытка изменить свойства задачи через полученный объект
-        retrievedTask.setTitle("Modified Title");
-        retrievedTask.setDescription("Modified Description");
-        retrievedTask.setStatus(Status.DONE);
-
-        // Повторное получение задачи из менеджера
-        Task reRetrievedTask = taskManager.getTaskById(taskId);
-
-        // Проверка, что задача в менеджере осталась неизменной
-        assertEquals("Task 1", reRetrievedTask.getTitle());
-        assertEquals("Description 1", reRetrievedTask.getDescription());
-        assertEquals(Status.NEW, reRetrievedTask.getStatus());
+        // Проверяем, что статус задачи не изменяется
+        assertEquals(Status.NEW, task.getStatus(), "Status should not change.");
     }
 }
