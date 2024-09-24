@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 public class TaskTest {
     @Test
-    public void testTaskConstructor() {
+    public void taskConstructor_ShouldInitializeFieldsCorrectly() {
         Task task = new Task("Title", "Description", Status.NEW);
         assertEquals("Title", task.getTitle());
         assertEquals("Description", task.getDescription());
@@ -12,7 +12,7 @@ public class TaskTest {
     }
 
     @Test
-    public void testTaskSetters() {
+    public void setTitle_setDescription_setStatus_ShouldUpdateTaskFields() {
         Task task = new Task("Title", "Description", Status.NEW);
         task.setTitle("New Title");
         task.setDescription("New Description");
