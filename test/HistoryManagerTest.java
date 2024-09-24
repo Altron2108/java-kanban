@@ -8,7 +8,7 @@ class HistoryManagerTest {
     private final Task task = new Task("Test Task", "Test Description", Status.NEW);
 
     @Test
-    void testAddToHistory() {
+    void addTaskToHistory_TaskAdded_HistoryContainsTask() {
         historyManager.add(task);
         var history = historyManager.getHistory();
 
