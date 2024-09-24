@@ -21,7 +21,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testHistoryPreservesOrder() {
+    void addTasksToHistory_HistoryPreservesCorrectOrder() {
         // Добавляем задачи в историю
         historyManager.add(task1);
         historyManager.add(task2);
@@ -37,7 +37,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testAddingSameTaskMovesItToEnd() {
+    void addSameTaskToHistory_TaskMovesToEnd() {
         // Добавляем задачи в историю
         historyManager.add(task1);
         historyManager.add(task2);
@@ -55,7 +55,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testHistoryDoesNotContainDuplicates() {
+    void addDuplicateTask_HistoryDoesNotContainDuplicates() {
         // Добавляем одну задачу несколько раз
         historyManager.add(task1);
         historyManager.add(task2);
@@ -71,7 +71,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testGetHistoryReturnsUnmodifiableList() {
+    void getHistory_HistoryReturnsUnmodifiableList() {
         // Добавляем задачи в историю
         historyManager.add(task1);
         historyManager.add(task2);
