@@ -13,14 +13,17 @@ class TaskImmutabilityTest {
     }
 
     @Test
-    void testImmutability() {
-        // Проверяем, что заголовок задачи не изменяется
-        assertEquals("Task 1", task.getTitle(), "Title should not change.");
+    void getTitle_ShouldReturnInitialTitle() {
+        assertEquals("Task 1", task.getTitle(), "Title should be 'Task 1' after creation.");
+    }
 
-        // Проверяем, что описание задачи не изменяется
-        assertEquals("Description 1", task.getDescription(), "Description should not change.");
+    @Test
+    void getDescription_ShouldReturnInitialDescription() {
+        assertEquals("Description 1", task.getDescription(), "Description should be 'Description 1' after creation.");
+    }
 
-        // Проверяем, что статус задачи не изменяется
-        assertEquals(Status.NEW, task.getStatus(), "Status should not change.");
+    @Test
+    void getStatus_ShouldReturnInitialStatus() {
+        assertEquals(Status.NEW, task.getStatus(), "Status should be 'NEW' after creation.");
     }
 }
