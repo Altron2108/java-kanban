@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 public class TaskManagerTest {
 
     @Test
-    public void testTaskUniqueness() {
+    public void createTask_ShouldAssignUniqueIds() {
         TaskManager manager = new InMemoryTaskManager();
 
         Task task1 = new Task("Title1", "Description1", Status.NEW);
