@@ -12,7 +12,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testCreateTask() {
+    public void createTask_TaskIsCreatedSuccessfully() {
         Task task = new Task("Test Task", "Test Description", Status.NEW);
         int taskId = taskManager.createTask(task);
         Task retrievedTask = taskManager.getTaskById(taskId);
@@ -21,7 +21,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testGetTaskById() {
+    public void getTaskById_TaskIsRetrievedSuccessfully() {
         Task task = new Task("Test Task", "Test Description", Status.NEW);
         int taskId = taskManager.createTask(task);
         Task retrievedTask = taskManager.getTaskById(taskId);
@@ -30,7 +30,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testUpdateTask() {
+    public void updateTask_TaskIsUpdatedSuccessfully() {
         Task task = new Task("Test Task", "Test Description", Status.NEW);
         int taskId = taskManager.createTask(task);
         task.setTitle("Updated Task");
@@ -40,7 +40,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testDeleteTaskById() {
+    public void deleteTaskById_TaskIsDeletedSuccessfully() {
         Task task = new Task("Test Task", "Test Description", Status.NEW);
         int taskId = taskManager.createTask(task);
         taskManager.deleteTaskById(taskId);
@@ -49,7 +49,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testCreateSubtask() {
+    public void createSubtask_SubtaskIsCreatedSuccessfully() {
         Epic epic = new Epic("Epic Title", "Epic Description");
         int epicId = taskManager.createEpic(epic);
         Subtask subtask = new Subtask("Subtask Title", "Subtask Description", Status.NEW, epicId);
@@ -58,7 +58,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testUpdateSubtask() {
+    public void updateSubtask_SubtaskIsUpdatedSuccessfully() {
         Epic epic = new Epic("Epic Title", "Epic Description");
         int epicId = taskManager.createEpic(epic);
         Subtask subtask = new Subtask("Subtask Title", "Subtask Description", Status.NEW, epicId);
@@ -70,7 +70,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testDeleteSubtaskById() {
+    public void deleteSubtaskById_SubtaskIsDeletedSuccessfully() {
         Epic epic = new Epic("Epic Title", "Epic Description");
         int epicId = taskManager.createEpic(epic);
         Subtask subtask = new Subtask("Subtask Title", "Subtask Description", Status.NEW, epicId);
@@ -80,7 +80,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void testEpicStatusUpdate() {
+    public void epicStatusUpdate_EpicStatusUpdatesCorrectly() {
         Epic epic = new Epic("Epic Title", "Epic Description");
         int epicId = taskManager.createEpic(epic);
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW, epicId);
