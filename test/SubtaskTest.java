@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 public class SubtaskTest {
     @Test
-    public void testSubtaskConstructor() {
+    public void constructor_ShouldInitializeFieldsCorrectly() {
         Subtask subtask = new
                 Subtask("Subtask Title", "Subtask Description", Status.NEW, 1);
         assertEquals("Subtask Title", subtask.getTitle());
