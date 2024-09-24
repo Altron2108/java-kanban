@@ -1,4 +1,3 @@
-
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -6,13 +5,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class ManagersTest {
 
     @Test
-    void managersShouldReturnInitializedInstances() {
-        // Получаем экземпляры менеджеров
+    void getDefaultTaskManager_TaskManagerIsInitialized() {
+        // Получаем экземпляр менеджера задач
         TaskManager taskManager = Managers.getDefaultTaskManager();
+
+        assertNotNull(taskManager, "Менеджер задач должен быть инициализирован.");
+    }
+
+    @Test
+    void getDefaultHistoryManager_HistoryManagerIsInitialized() {
+        // Получаем экземпляр менеджера истории
         HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
-
-        assertNotNull(taskManager, "Менеджер задач не инициализирован.");
-        assertNotNull(historyManager, "Менеджер истории не инициализирован.");
+        assertNotNull(historyManager, "Менеджер истории должен быть инициализирован.");
     }
 }
