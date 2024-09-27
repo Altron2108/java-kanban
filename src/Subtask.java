@@ -15,6 +15,11 @@ public class Subtask extends Task {
 
     // Геттер и сеттер для epicId
 
+    @Override
+    public TaskType getType() {
+        return TaskType.Subtask;
+    }
+
     public int getEpicId() {
         return epicId;
     }
@@ -36,5 +41,5 @@ public class Subtask extends Task {
                 '}';
     }
 
-    // equals и hashCode могут быть переопределены при необходимости
+
 }

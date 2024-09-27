@@ -22,6 +22,10 @@ public class Task {
         this.status = status;
     }
 
+
+    public TaskType getType() {
+        return TaskType.Task; // Возвращаем тип задачи
+    }
     // Геттеры и сеттеры
 
     public int getId() {
