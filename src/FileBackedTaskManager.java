@@ -13,7 +13,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Метод для сохранения состояния менеджера в файл
-    protected void save() {
+    private void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,epic");
             writer.newLine();
@@ -112,9 +112,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String description = fields[4];
 
         return switch (type) {
-            case Task  -> new Task(id, name, description, status);
-            case Epic  -> new Epic(name, description);
-            case Subtask  -> {
+            case Task -> new Task(id, name, description, status);
+            case Epic -> new Epic(name, description);
+            case Subtask -> {
                 int epicId = Integer.parseInt(fields[5]);
                 yield new Subtask(id, name, description, status, epicId);
             }
