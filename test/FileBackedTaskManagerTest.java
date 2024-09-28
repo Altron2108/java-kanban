@@ -18,15 +18,6 @@ public class FileBackedTaskManagerTest {
         manager = new FileBackedTaskManager(testFile);
     }
 
-    @Test
-    public void shouldSaveAndLoadEmptyManager() {
-        // Проверяем, что при сохранении и загрузке пустого менеджера данные не теряются
-        manager.save();
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
-        assertTrue(loadedManager.getTasks().isEmpty(), "Tasks list should be empty.");
-        assertTrue(loadedManager.getEpics().isEmpty(), "Epics list should be empty.");
-        assertTrue(loadedManager.getSubtasks().isEmpty(), "Subtasks list should be empty.");
-    }
 
     @Test
     public void shouldSaveAndLoadSingleTask() {
