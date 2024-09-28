@@ -1,20 +1,70 @@
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final LinkedList<Task> history = new LinkedList<>();
-    private static final int MAX_HISTORY_SIZE = 10;
+    private final Map<Integer, Node<Task>> nodeMap = new HashMap<>();
+    private Node<Task> head;
+    private Node<Task> tail;
+
+    private static class Node<T> {
+        Task data;
+        Node<T> prev;
+        Node<T> next;
+
+        Node(Task data) {
+            this.data = data;
+        }
+    }
 
     @Override
     public void add(Task task) {
-        if (history.size() == MAX_HISTORY_SIZE) {
-            history.removeLast();
+        if (nodeMap.containsKey(task.getId())) {
+            removeNode(nodeMap.get(task.getId()));
         }
-        history.addFirst(task);
+        linkLast(task);
+    }
+
+    @Override
+    public void remove(int id) {
+        Node<Task> node = nodeMap.remove(id);
+        if (node != null) {
+            removeNode(node);
+        }
     }
 
     @Override
     public List<Task> getHistory() {
-        return new LinkedList<>(history);
+        List<Task> history = new ArrayList<>();
+        Node<Task> current = head;
+        while (current != null) {
+            history.add(current.data);
+            current = current.next;
+        }
+        return history;
+    }
+
+    private void linkLast(Task task) {
+        Node<Task> newNode = new Node<>(task);
+        if (tail == null) {
+            head = newNode;
+        } else {
+            tail.next = newNode;
+            newNode.prev = tail;
+        }
+        tail = newNode;
+        nodeMap.put(task.getId(), newNode);
+    }
+
+    private void removeNode(Node<Task> node) {
+        if (node.prev != null) {
+            node.prev.next = node.next;
+        } else { // node is head
+            head = node.next;
+        }
+
+        if (node.next != null) {
+            node.next.prev = node.prev;
+        } else { // node is tail
+            tail = node.prev;
+        }
     }
 }

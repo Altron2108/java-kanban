@@ -1,9 +1,10 @@
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 
 public class EpicTest {
     @Test
-    public void testEpicConstructor() {
+    public void epicConstructor_ValidInput_EpicCreatedSuccessfully() {
         Epic epic = new Epic("Epic Title", "Epic Description");
         assertEquals("Epic Title", epic.getTitle());
         assertEquals("Epic Description", epic.getDescription());
