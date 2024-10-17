@@ -1,26 +1,66 @@
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        TaskManager taskManager = Managers.getDefaultTaskManager();
-        HistoryManager historyManager = Managers.getDefaultHistoryManager();
+        InMemoryTaskManager taskManager = new InMemoryTaskManager();
 
-        Task task1 = new Task("Task 1", "Description 1", Status.NEW);
-        Task task2 = new Task("Task 2", "Description 2", Status.NEW);
-        Epic epic = new Epic("Epic 1", "Epic Description");
-
+        // Создание задачи с автоматическим присвоением ID
+        Task task1 = new Task(0, "Task 1", "Description 1", Status.NEW, Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 9, 0));
         taskManager.createTask(task1);
-        taskManager.createTask(task2);
-        taskManager.createEpic(epic);
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Subtask 1 Description", Status.NEW, epic.getId());
-        Subtask subtask2 = new Subtask("Subtask 2", "Subtask 2 Description", Status.NEW, epic.getId());
+        // Создание эпика
+        Epic epic1 = new Epic(0, "Epic 1", "Epic Description");
+        taskManager.createEpic(epic1);
+
+        // Создание подзадачи с автоматическим присвоением ID и связыванием с эпиком
+        Subtask subtask1 = new Subtask(0, "Subtask 1", "Sub Description 1", Status.NEW, epic1.id, Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 10, 0));
         taskManager.createSubtask(subtask1);
-        taskManager.createSubtask(subtask2);
 
-        System.out.println(historyManager.getHistory());
-        taskManager.deleteTaskById(task1.getId());
-        System.out.println(historyManager.getHistory());
-        taskManager.deleteEpicById(epic.getId());
-        System.out.println(historyManager.getHistory());
+        // Получение и вывод приоритетных задач
+        List<Task> prioritized = taskManager.getPrioritizedTasks();
+        for (Task task : prioritized) {
+            System.out.println(task);
+        }
+
+        // Сохранение задач в файл
+        try {
+            taskManager.save();
+        } catch (IOException e) {
+            e.fillInStackTrace();
+        }
+
+        // Загрузка задач из файла
+        FileBackedTaskManager loadedManager = new FileBackedTaskManager("tasks.csv");
+        try {
+            loadedManager.load();
+        } catch (IOException | ManagerSaveException e) {
+            e.fillInStackTrace();
+        }
+
+        // Вывод загруженных задач
+        List<Task> loadedTasks = loadedManager.getAllTasks();
+        for (Task task : loadedTasks) {
+            System.out.println(task);
+        }
+
+        List<Epic> loadedEpics = loadedManager.getAllEpics();
+        for (Epic epic : loadedEpics) {
+            System.out.println(epic);
+        }
+
+        List<Subtask> loadedSubtasks = loadedManager.getAllSubtasks();
+        for (Subtask subtask : loadedSubtasks) {
+            System.out.println(subtask);
+        }
+
+        // Вывод истории
+        List<Task> history = loadedManager.historyManager.getHistory();
+        System.out.println("История задач:");
+        for (Task task : history) {
+            System.out.println(task);
+        }
     }
 }

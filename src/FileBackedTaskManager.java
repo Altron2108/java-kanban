@@ -1,195 +1,167 @@
-import java.io.*;
-import java.nio.file.Files;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// Наследуем FileBackedTaskManager от InMemoryTaskManager для переиспользования существующей логики
 public class FileBackedTaskManager extends InMemoryTaskManager {
-    private final File file;
+    private final String filePath;
 
-    // Конструктор с указанием файла для автосохранения
-    public FileBackedTaskManager(File file) {
-        this.file = file;
+    public FileBackedTaskManager(String filePath) {
+        this.filePath = filePath;
     }
 
-    // Метод для сохранения состояния менеджера в файл
-    private void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write("id,type,name,status,description,epic");
+    @Override
+    public void save() throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write("id,type,name,status,description,duration,startTime,epic\n");
+            for (Task task : tasks.values()) {
+                writer.write(taskToString(task));
+                writer.newLine();
+            }
+            for (Epic epic : epics.values()) {
+                writer.write(taskToString(epic));
+                writer.newLine();
+            }
+            for (Subtask subtask : subtasks.values()) {
+                writer.write(taskToString(subtask));
+                writer.newLine();
+            }
             writer.newLine();
-
-            // Сохранение всех задач
-            for (Task task : getTasks()) {
-                writer.write(toString(task));
-                writer.newLine();
-            }
-
-            // Сохранение всех эпиков
-            for (Epic epic : getEpics()) {
-                writer.write(toString(epic));
-                writer.newLine();
-            }
-
-            // Сохранение всех подзадач
-            for (Subtask subtask : getSubtasks()) {
-                writer.write(toString(subtask));
-                writer.newLine();
-            }
-
-            // Сохранение истории просмотра
-            writer.newLine();
-            writer.write(historyToString());
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка сохранения данных в файл.", e);
+            // Сохранение истории в формате id,id,id,...
+            List<Task> history = historyManager.getHistory();
+            String historyLine = history.stream()
+                    .map(task -> String.valueOf(task.id))
+                    .collect(Collectors.joining(","));
+            writer.write(historyLine);
         }
     }
 
-    // Метод для загрузки менеджера из файла
-    public static FileBackedTaskManager loadFromFile(File file) {
-        FileBackedTaskManager manager = new FileBackedTaskManager(file);
-        try {
-            List<String> lines = Files.readAllLines(file.toPath());
-            boolean isHistory = false;
-
-            for (String line : lines) {
-                if (line.isEmpty()) {
-                    isHistory = true;
-                    continue;
+    @Override
+    public void load() throws IOException, ManagerSaveException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line = reader.readLine(); // Пропускаем заголовок
+            if (line == null || !line.equals("id,type,name,status,description,duration,startTime,epic")) {
+                throw new ManagerSaveException("Некорректный формат файла.");
+            }
+            while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                String[] fields = parseLine(line);
+                if (fields.length < 7) {
+                    throw new ManagerSaveException("Некорректные данные задачи: " + line);
                 }
-                if (!isHistory) {
-                    if (!line.startsWith("id,")) { // Пропуск заголовка
-                        Task task = fromString(line);
-                        switch (task.getType()) {
-                            case Task:
-                                manager.createTask(task);
-                                break;
-                            case Epic:
-                                manager.createEpic((Epic) task);
-                                break;
-                            case Subtask:
-                                manager.createSubtask((Subtask) task);
-                                break;
+                int id = Integer.parseInt(fields[0]);
+                String type = fields[1];
+                String name = fields[2];
+                Status status;
+                try {
+                    status = Status.valueOf(fields[3]);
+                } catch (IllegalArgumentException e) {
+                    throw new ManagerSaveException("Неизвестный статус задачи: " + fields[3]);
+                }
+                String description = fields[4];
+                Duration duration = fields[5].isEmpty() ? null : Duration.ofMinutes(Long.parseLong(fields[5]));
+                LocalDateTime startTime = fields[6].isEmpty() ? null : LocalDateTime.parse(fields[6]);
+
+                Task task;
+                switch (type) {
+                    case "TASK":
+                        task = new Task(id, name, description, status, duration, startTime);
+                        if (isTaskTimeIntersect(task)) {
+                            throw new ManagerSaveException("Задача пересекается с существующими задачами.");
                         }
+                        tasks.put(id, task);
+                        if (startTime != null) {
+                            prioritizedTasks.add(task);
+                        }
+                        break;
+                    case "EPIC":
+                        Epic epic = new Epic(id, name, description);
+                        epics.put(id, epic);
+                        break;
+                    case "SUBTASK":
+                        if (fields.length < 8) {
+                            throw new ManagerSaveException("Подзадача должна иметь поле epicId.");
+                        }
+                        int epicId = Integer.parseInt(fields[7]);
+                        if (!epics.containsKey(epicId)) {
+                            throw new ManagerSaveException("Epic с id " + epicId + " не найден для подзадачи.");
+                        }
+                        Subtask subtask = new Subtask(id, name, description, status, epicId, duration, startTime);
+                        if (isTaskTimeIntersect(subtask)) {
+                            throw new ManagerSaveException("Задача пересекается с существующими задачами.");
+                        }
+                        subtasks.put(id, subtask);
+                        epics.get(epicId).addSubtask(id);
+                        if (startTime != null) {
+                            prioritizedTasks.add(subtask);
+                        }
+                        break;
+                    default:
+                        throw new ManagerSaveException("Неизвестный тип задачи: " + type);
+                }
+            }
+            // После загрузки всех задач, обновляем эпики
+            for (Epic epic : epics.values()) {
+                List<Subtask> epicSubtasks = getEpicSubtasks(epic.id);
+                epic.updateFields(epicSubtasks);
+            }
+            // Загрузка истории
+            if ((line = reader.readLine()) != null) {
+                String[] historyIds = line.split(",");
+                for (String idStr : historyIds) {
+                    if (idStr.isEmpty()) continue;
+                    int id = Integer.parseInt(idStr);
+                    Task task = tasks.get(id);
+                    if (task == null) {
+                        task = epics.get(id);
                     }
-                } else {
-                    List<Integer> historyIds = historyFromString(line);
-                    for (int id : historyIds) {
-                        if (manager.getTaskById(id) != null) {
-                            manager.getHistoryManager().add(manager.getTaskById(id));
-                        } else if (manager.getEpicById(id) != null) {
-                            manager.getHistoryManager().add(manager.getEpicById(id));
-                        } else if (manager.getSubtaskById(id) != null) {
-                            manager.getHistoryManager().add(manager.getSubtaskById(id));
-                        }
+                    if (task == null) {
+                        task = subtasks.get(id);
+                    }
+                    if (task != null) {
+                        historyManager.add(task);
                     }
                 }
             }
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка загрузки данных из файла.", e);
         }
-        return manager;
     }
 
-    // Преобразование задачи в строку CSV
-    private String toString(Task task) {
-        String epicId = (task instanceof Subtask) ? String.valueOf(((Subtask) task).getEpicId()) : "";
-        return String.format("%d,%s,%s,%s,%s,%s",
-                task.getId(),
-                task.getType(),
-                task.getTitle(),
-                task.getStatus(),
-                task.getDescription(),
-                epicId);
-    }
-
-    // Восстановление задачи из строки CSV
-    private static Task fromString(String value) {
-        String[] fields = value.split(",");
-        int id = Integer.parseInt(fields[0]);
-        TaskType type = TaskType.valueOf(fields[1]);
-        String name = fields[2];
-        Status status = Status.valueOf(fields[3]);
-        String description = fields[4];
-
-        return switch (type) {
-            case Task -> new Task(id, name, description, status);
-            case Epic -> new Epic(name, description);
-            case Subtask -> {
-                int epicId = Integer.parseInt(fields[5]);
-                yield new Subtask(id, name, description, status, epicId);
+    private String[] parseLine(String line) {
+        List<String> tokens = new ArrayList<>();
+        boolean inQuotes = false;
+        StringBuilder sb = new StringBuilder();
+        for (char c : line.toCharArray()) {
+            if (c == '\"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                tokens.add(sb.toString().trim());
+                sb.setLength(0);
+            } else {
+                sb.append(c);
             }
-        };
+        }
+        tokens.add(sb.toString().trim());
+        return tokens.toArray(new String[0]);
     }
 
-    // Преобразование истории в строку CSV
-    private String historyToString() {
-        return getHistoryManager().getHistory().stream()
-                .map(task -> String.valueOf(task.getId()))
-                .collect(Collectors.joining(","));
+    // Метод для проверки пересечения времени задач
+    private boolean isTaskTimeIntersect(Task newTask) {
+        for (Task existingTask : prioritizedTasks) {
+            if (existingTask.startTime != null && newTask.startTime != null) {
+                boolean isOverlapping = newTask.startTime.isBefore(existingTask.startTime.plus(existingTask.duration)) &&
+                        existingTask.startTime.isBefore(newTask.startTime.plus(newTask.duration));
+                if (isOverlapping) {
+                    return true;  // Если есть пересечение, возвращаем true
+                }
+            }
+        }
+        return false;  // Если пересечений нет, возвращаем false
     }
-
-    // Восстановление истории из строки CSV
-    private static List<Integer> historyFromString(String value) {
-        return Arrays.stream(value.split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
-    }
-
-    // Переопределяем методы изменения состояния менеджера, чтобы добавлять вызов save()
-    @Override
-    public int createTask(Task task) {
-        int id = super.createTask(task);
-        save();
-        return id;
-    }
-
-    @Override
-    public int createEpic(Epic epic) {
-        int id = super.createEpic(epic);
-        save();
-        return id;
-    }
-
-    @Override
-    public int createSubtask(Subtask subtask) {
-        int id = super.createSubtask(subtask);
-        save();
-        return id;
-    }
-
-    @Override
-    public void updateTask(Task task) {
-        super.updateTask(task);
-        save();
-    }
-
-    @Override
-    public void updateEpic(Epic epic) {
-        super.updateEpic(epic);
-        save();
-    }
-
-    @Override
-    public void updateSubtask(Subtask subtask) {
-        super.updateSubtask(subtask);
-        save();
-    }
-
-    @Override
-    public void deleteTaskById(int id) {
-        super.deleteTaskById(id);
-        save();
-    }
-
-    @Override
-    public void deleteEpicById(int id) {
-        super.deleteEpicById(id);
-        save();
-    }
-
-    @Override
-    public void deleteSubtaskById(int id) {
-        super.deleteSubtaskById(id);
-        save();
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 }

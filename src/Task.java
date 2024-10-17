@@ -1,56 +1,52 @@
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
+
+
 public class Task {
-    private int id;
+    protected int id;
+    protected String name;
+    protected String description;
+    protected Status status;
+    protected Duration duration; // Новое поле
+    protected LocalDateTime startTime; // Новое поле
     private String title;
-    private String description;
-    private Status status;
 
-    // Конструктор без id, id будет установлен менеджером задач
-    public Task(String title, String description, Status status) {
-        this.id = -1; // ID будет присвоен менеджером задач
-        this.title = title;
-        this.description = description;
-        this.status = status;
-    }
-
-    // Конструктор с id, используется в тестах или при загрузке из хранилища
-    public Task(int id, String title, String description, Status status) {
+    public Task(int id, String name, String description, Status status, Duration duration, LocalDateTime startTime) {
         this.id = id;
-        this.title = title;
+        this.name = name;
         this.description = description;
         this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
     }
 
-
-    public TaskType getType() {
-        return TaskType.Task; // Возвращаем тип задачи
-    }
     // Геттеры и сеттеры
-
-    public int getId() {
-        return id;
-    }
-
-    // Только менеджер задач может устанавливать id
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;
     }
 
-    // Позволяет изменять заголовок задачи
     public void setTitle(String title) {
         this.title = title;
+    }
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
-    // Позволяет изменять описание задачи
     public void setDescription(String description) {
         this.description = description;
     }
@@ -59,12 +55,32 @@ public class Task {
         return status;
     }
 
-    // Позволяет изменять статус задачи
     public void setStatus(Status status) {
         this.status = status;
     }
 
-    // Переопределение методов equals и hashCode для корректного сравнения объектов
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime != null && duration != null) {
+            return startTime.plus(duration);
+        }
+        return null;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -73,23 +89,29 @@ public class Task {
 
         Task task = (Task) o;
 
-        return id == task.id;
+        return id == task.id &&
+                Objects.equals(name, task.name) &&
+                Objects.equals(description, task.description) &&
+                status == task.status &&
+                Objects.equals(duration, task.duration) &&
+                Objects.equals(startTime, task.startTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, name, description, status, duration, startTime);
     }
-
-    // Переопределение метода toString для удобного вывода информации о задаче
 
     @Override
     public String toString() {
         return "Task{" +
                 "id=" + id +
-                ", title='" + title + '\'' +
+                ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
+                ", duration=" + duration +
+                ", startTime=" + startTime +
+                ", endTime=" + getEndTime() +
                 '}';
     }
 }

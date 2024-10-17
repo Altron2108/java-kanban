@@ -1,11 +1,21 @@
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class HistoryManagerTest {
 
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
-    private final Task task = new Task("Test Task", "Test Description", Status.NEW);
+    private final Task task = new Task(
+            1,                            // Идентификатор задачи
+            "Test Task",
+            "Test Description",
+            Status.NEW,
+            Duration.ofHours(1),           // Продолжительность задачи
+            LocalDateTime.now()            // Время начала задачи
+    );
 
     @Test
     void addTaskToHistory_TaskAdded_HistoryContainsTask() {
