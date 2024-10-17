@@ -3,7 +3,6 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 
-
 public class Task {
     protected int id;
     protected String name;
@@ -31,6 +30,7 @@ public class Task {
     public void setTitle(String title) {
         this.title = title;
     }
+
     public int getId() {
         return id;
     }

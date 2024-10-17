@@ -30,7 +30,8 @@ class TaskImmutabilityTest {
     @Test
     void getDescription_ShouldReturnInitialDescription() {
         System.out.println("Current description: " + task.getDescription());
-        assertEquals("Description 1", task.getDescription(), "Description should be 'Description 1' after creation.");
+        assertEquals("Description 1", task.getDescription(), "Description should be " +
+                "'Description 1' after creation.");
     }
 
     @Test

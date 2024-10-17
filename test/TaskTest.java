@@ -11,7 +11,8 @@ public class TaskTest {
     @Test
     public void setTitle_setDescription_setStatus_ShouldUpdateTaskFields() {
         // Создаем задачу с корректным конструктором
-        Task task = new Task(1, "Title", "Description", Status.NEW, Duration.ofHours(1), LocalDateTime.now());
+        Task task = new Task(1, "Title", "Description", Status.NEW, Duration.ofHours(1),
+                LocalDateTime.now());
 
         // Меняем значения полей через сеттеры
         task.setTitle("New Title");

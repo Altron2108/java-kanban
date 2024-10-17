@@ -161,6 +161,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
         return false;  // Если пересечений нет, возвращаем false
     }
+
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }
