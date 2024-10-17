@@ -3,10 +3,8 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,10 +78,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             prioritizedTasks.add(task);
                         }
                         break;
+
                     case "EPIC":
                         Epic epic = new Epic(id, name, description);
                         epics.put(id, epic);
                         break;
+
                     case "SUBTASK":
                         if (fields.length < 8) {
                             throw new ManagerSaveException("Подзадача должна иметь поле epicId.");
@@ -102,15 +102,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             prioritizedTasks.add(subtask);
                         }
                         break;
+
                     default:
                         throw new ManagerSaveException("Неизвестный тип задачи: " + type);
                 }
             }
+
             // После загрузки всех задач, обновляем эпики
             for (Epic epic : epics.values()) {
                 List<Subtask> epicSubtasks = getEpicSubtasks(epic.id);
                 epic.updateFields(epicSubtasks);
             }
+
             // Загрузка истории
             if ((line = reader.readLine()) != null) {
                 String[] historyIds = line.split(",");
