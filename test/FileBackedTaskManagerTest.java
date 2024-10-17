@@ -12,11 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FileBackedTaskManagerTest {
     private static final String FILE_PATH = "test_tasks.csv";
-    private FileBackedTaskManager manager;
 
     @BeforeEach
     void setUp() {
-        manager = new FileBackedTaskManager(FILE_PATH);
+        new FileBackedTaskManager(FILE_PATH);
     }
 
     @AfterEach
