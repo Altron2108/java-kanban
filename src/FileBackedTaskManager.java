@@ -161,6 +161,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         existingTask.startTime.isBefore(newTask.startTime.plus(newTask.duration));
                 if (isOverlapping) {
                     return true;  // Если есть пересечение, возвращаем true
+
                 }
             }
         }
