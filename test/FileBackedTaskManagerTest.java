@@ -30,7 +30,6 @@ class FileBackedTaskManagerTest {
         }
     }
 
-
     @Test
     void testLoadInvalidFileFormat() {
         // Создание файла с некорректным форматом
