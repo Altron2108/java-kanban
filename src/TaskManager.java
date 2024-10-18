@@ -11,6 +11,7 @@ public interface TaskManager {
     void deleteTaskById(int id);
 
     void removeAllTasks();                 // Удаление всех задач
+
     List<Task> getTasks();                 // Получение всех задач
 
     // Методы для управления эпиками
@@ -23,6 +24,7 @@ public interface TaskManager {
     void deleteEpicById(int id);
 
     void removeAllEpics();                 // Удаление всех эпиков
+
     List<Epic> getEpics();                 // Получение всех эпиков
 
     // Методы для управления подзадачами
@@ -35,6 +37,7 @@ public interface TaskManager {
     void deleteSubtaskById(int id);
 
     void removeAllSubtasks();              // Удаление всех подзадач
+
     List<Subtask> getSubtasks();           // Получение всех подзадач
 
     // Получение списка задач по приоритету
