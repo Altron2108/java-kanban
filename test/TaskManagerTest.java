@@ -88,7 +88,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void testGetPrioritizedTasks() {
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.now().plusHours(4));
+                Duration.ofMinutes(60), LocalDateTime.now().plusHours(3));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
                 Duration.ofMinutes(30), LocalDateTime.now().plusHours(1));
 
