@@ -39,9 +39,11 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     public void getPrioritizedTasks_ShouldReturnTasksInOrder() {
         // Задачи не пересекаются, так как у task1 начало через 3 часа после task2
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 13, 0)); // Начало в 13:00
+                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 13, 0));
+        // Начало в 13:00
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
-                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 10, 0)); // Начало в 10:00
+                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 10, 0));
+        // Начало в 10:00
 
         taskManager.createTask(task1);
         taskManager.createTask(task2);
