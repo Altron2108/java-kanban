@@ -64,9 +64,9 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
     @Test
     public void getPrioritizedTasks_ShouldReturnTasksInOrder() {
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.now());
+                Duration.ofMinutes(60), LocalDateTime.now().plusHours(3)); // Изменено на 3 часа позже
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
-                Duration.ofMinutes(30), LocalDateTime.now().plusHours(1));
+                Duration.ofMinutes(30), LocalDateTime.now().plusHours(1)); // Время старта task2 остается
 
         taskManager.createTask(task1);
         taskManager.createTask(task2);
@@ -74,7 +74,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
 
         assertEquals(2, prioritizedTasks.size(), "Should return two tasks in prioritized order.");
-        assertEquals(task1, prioritizedTasks.get(0), "First task should be task1.");
-        assertEquals(task2, prioritizedTasks.get(1), "Second task should be task2.");
+        assertEquals(task2, prioritizedTasks.get(0), "First task should be task2."); // task2 идет первой
+        assertEquals(task1, prioritizedTasks.get(1), "Second task should be task1."); // task1 идет второй
     }
 }
