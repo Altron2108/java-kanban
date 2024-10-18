@@ -32,7 +32,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 30));
+                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 10, 30));
 
         taskManager.createTask(task1);
 
@@ -46,7 +46,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 12, 0));
+                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 12, 0));
 
         taskManager.createTask(task1);
         taskManager.createTask(task2);
