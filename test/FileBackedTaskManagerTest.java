@@ -1,18 +1,20 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
-    private FileBackedTaskManager fileBackedTaskManager;
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     private final File testFile = new File("test_tasks.csv");
 
     @BeforeEach
+    @Override
     public void setUp() {
-        fileBackedTaskManager = new FileBackedTaskManager(testFile);
+        taskManager = new FileBackedTaskManager(testFile);
     }
 
     @Test
@@ -20,8 +22,8 @@ public class FileBackedTaskManagerTest {
         // Создание задачи и сохранение в файл
         Task task = new RegularTask("Task 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
-        fileBackedTaskManager.createTask(task);
-        fileBackedTaskManager.save();
+        taskManager.createTask(task);
+        taskManager.save();
 
         // Создаем новый менеджер и загружаем данные из файла
         FileBackedTaskManager newManager = new FileBackedTaskManager(testFile);
