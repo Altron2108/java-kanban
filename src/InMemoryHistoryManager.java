@@ -6,11 +6,11 @@ public class InMemoryHistoryManager implements HistoryManager {
     private Node<Task> tail;
 
     private static class Node<T> {
-        Task data;
+        T data;
         Node<T> prev;
         Node<T> next;
 
-        Node(Task data) {
+        Node(T data) {
             this.data = data;
         }
     }
@@ -39,7 +39,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             history.add(current.data);
             current = current.next;
         }
-        return history;
+        return Collections.unmodifiableList(history);
     }
 
     private void linkLast(Task task) {
