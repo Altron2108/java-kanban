@@ -1,48 +1,40 @@
-import java.util.Objects;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
-public class Task {
+public abstract class Task {
     private int id;
-    private String title;
-    private String description;
-    private Status status;
+    private String title; // Убрали final
+    private String description; // Убрали final
+    private Status status; // Убрали final
+    private final Duration duration;
+    private LocalDateTime startTime;
 
-    // Конструктор без id, id будет установлен менеджером задач
-    public Task(String title, String description, Status status) {
-        this.id = -1; // ID будет присвоен менеджером задач
+    public Task(String title, String description, Status status, Duration duration, LocalDateTime startTime) {
+        this.id = -1; // По умолчанию id -1
         this.title = title;
         this.description = description;
         this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
     }
-
-    // Конструктор с id, используется в тестах или при загрузке из хранилища
-    public Task(int id, String title, String description, Status status) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.status = status;
-    }
-
-
-    public TaskType getType() {
-        return TaskType.Task; // Возвращаем тип задачи
-    }
-    // Геттеры и сеттеры
 
     public int getId() {
         return id;
     }
 
-    // Только менеджер задач может устанавливать id
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     public String getTitle() {
         return title;
     }
 
-    // Позволяет изменять заголовок задачи
-    public void setTitle(String title) {
+    public void setTitle(String title) { // Добавили метод
         this.title = title;
     }
 
@@ -50,8 +42,7 @@ public class Task {
         return description;
     }
 
-    // Позволяет изменять описание задачи
-    public void setDescription(String description) {
+    public void setDescription(String description) { // Добавили метод
         this.description = description;
     }
 
@@ -59,37 +50,21 @@ public class Task {
         return status;
     }
 
-    // Позволяет изменять статус задачи
-    public void setStatus(Status status) {
+    public void setStatus(Status status) { // Добавили метод
         this.status = status;
     }
 
-    // Переопределение методов equals и hashCode для корректного сравнения объектов
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Task task = (Task) o;
-
-        return id == task.id;
+    public Duration getDuration() {
+        return duration;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    // Переопределение метода toString для удобного вывода информации о задаче
-
-    @Override
-    public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
+    public LocalDateTime getEndTime() {
+        return startTime.plus(duration);
     }
+
+    public abstract TaskType getType();
 }
