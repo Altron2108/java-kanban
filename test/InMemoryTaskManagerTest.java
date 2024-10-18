@@ -30,7 +30,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
     @Test
     public void testTaskWithOverlapThrowsException() {
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
+                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 30));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
                 Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 14, 30));
 
@@ -44,7 +44,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
     @Test
     public void testUpdateTaskWithOverlapThrowsException() {
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
+                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 11, 0));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
                 Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 12, 0));
 
