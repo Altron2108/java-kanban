@@ -84,6 +84,23 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeAllTasks();
         assertTrue(taskManager.getTasks().isEmpty(), "All tasks should be removed");
     }
+
+    @Test
+    public void testGetPrioritizedTasks() {
+        Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
+                Duration.ofMinutes(60), LocalDateTime.now().plusHours(2));
+        Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
+                Duration.ofMinutes(60), LocalDateTime.now().plusHours(1));
+
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+
+        List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
+
+        assertEquals(2, prioritizedTasks.size(), "Should return two tasks in prioritized order.");
+        assertEquals(task2, prioritizedTasks.get(0), "First task should be task2 with the earlier start time.");
+        assertEquals(task1, prioritizedTasks.get(1), "Second task should be task1 with the later start time.");
+    }
 }
 
 
