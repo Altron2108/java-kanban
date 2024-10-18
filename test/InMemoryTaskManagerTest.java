@@ -32,7 +32,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
-                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 10, 30));
+                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 14, 30));
 
         taskManager.createTask(task1);
 
@@ -53,7 +53,7 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
 
         // Обновляем task2 с пересечением времени
         task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
-                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 30));
+                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 15, 30));
 
         Task finalTask = task2;
         Exception exception = assertThrows(IllegalArgumentException.class, () -> taskManager.updateTask(finalTask));
