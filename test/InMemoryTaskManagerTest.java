@@ -1,15 +1,16 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class InMemoryTaskManagerTest {
-    private InMemoryTaskManager taskManager;
+public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @BeforeEach
+    @Override
     public void setUp() {
         taskManager = new InMemoryTaskManager();
     }
@@ -22,7 +23,8 @@ public class InMemoryTaskManagerTest {
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 12, 0));
 
         taskManager.createTask(task1);
-        assertDoesNotThrow(() -> taskManager.createTask(task2));
+        assertDoesNotThrow(() -> taskManager.createTask(task2),
+                "Creating overlapping task should not throw exception.");
     }
 
     @Test
@@ -31,13 +33,13 @@ public class InMemoryTaskManagerTest {
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 0));
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 30));
-        // Перекрытие по времени
 
         taskManager.createTask(task1);
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> taskManager.createTask(task2));
-        assertEquals("Task time overlap detected.", exception.getMessage());
-    }
 
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> taskManager.createTask(task2));
+        assertEquals("Task time overlap detected.", exception.getMessage(),
+                "Exception message should indicate a time overlap.");
+    }
 
     @Test
     public void testUpdateTaskWithOverlapThrowsException() {
@@ -49,32 +51,30 @@ public class InMemoryTaskManagerTest {
         taskManager.createTask(task1);
         taskManager.createTask(task2);
 
-        // Обновление task2 с пересечением времени
+        // Обновляем task2 с пересечением времени
         task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 10, 30));
 
         Task finalTask = task2;
         Exception exception = assertThrows(IllegalArgumentException.class, () -> taskManager.updateTask(finalTask));
-        assertEquals("Task time overlap detected.", exception.getMessage());
+        assertEquals("Task time overlap detected.", exception.getMessage(),
+                "Exception message should indicate a time overlap on update.");
     }
 
     @Test
     public void getPrioritizedTasks_ShouldReturnTasksInOrder() {
-        TaskManager manager = new InMemoryTaskManager();
-
         Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.now());
         Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
                 Duration.ofMinutes(30), LocalDateTime.now().plusHours(1));
 
-        manager.createTask(task1);
-        manager.createTask(task2);
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
 
-        List<Task> prioritizedTasks = manager.getPrioritizedTasks();
+        List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
 
-        assertEquals(task1, prioritizedTasks.get(0));
-        assertEquals(task2, prioritizedTasks.get(1));
+        assertEquals(2, prioritizedTasks.size(), "Should return two tasks in prioritized order.");
+        assertEquals(task1, prioritizedTasks.get(0), "First task should be task1.");
+        assertEquals(task2, prioritizedTasks.get(1), "Second task should be task2.");
     }
 }
-
-
