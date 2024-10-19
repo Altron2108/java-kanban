@@ -10,14 +10,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Сериализация задач
-    private void save() throws IOException {
+    public void save()  {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,duration,startTime,epicId\n"); // Добавим новые поля
             for (Task task : getTasks()) {
                 writer.write(toString(task));
                 writer.newLine();
             }
+        } catch (IOException e) {
+            handleError(e);
         }
+    }
+
+    private void handleError(Exception e) {
+        System.err.println("Ошибка при сохранении задач в файл" + ": " + e.getMessage());
     }
 
     // Де сериализация задач
@@ -83,61 +89,36 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void updateTask(Task task) {
         super.updateTask(task);
-        try {
-            save(); // Сохраняем изменения после обновления задачи
-        } catch (IOException e) {
-            e.fillInStackTrace(); // Обработка ошибки сохранения
-        }
-
+        save();
     }
 
     @Override
     public void updateEpic(Epic epic) {
         super.updateEpic(epic);
-        try {
-            save(); // Сохраняем изменения после обновления эпика
-        } catch (IOException e) {
-            e.fillInStackTrace(); // Обработка ошибки сохранения
-        }
+        save();
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
         super.updateSubtask(subtask);
-        try {
-            save();
-        } catch (IOException e) {
-            e.fillInStackTrace();
-        }
+        save();
     }
 
     @Override
     public void deleteTaskById(int id) {
         super.deleteTaskById(id);
-        try {
-            save();
-        } catch (IOException e) {
-            e.fillInStackTrace();
-        }
+        save();
     }
 
     @Override
     public void deleteEpicById(int id) {
         super.deleteEpicById(id);
-        try {
-            save();
-        } catch (IOException e) {
-            e.fillInStackTrace();
-        }
+        save();
     }
 
     @Override
     public void deleteSubtaskById(int id) {
         super.deleteSubtaskById(id);
-        try {
-            save();
-        } catch (IOException e) {
-            e.fillInStackTrace();
-        }
+        save();
     }
 }
