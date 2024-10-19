@@ -10,7 +10,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Сериализация задач
-    public void save() throws IOException {
+    private void save() throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,duration,startTime,epicId\n"); // Добавим новые поля
             for (Task task : getTasks()) {
@@ -78,5 +78,66 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         };
         task.setId(id);
         return task;
+    }
+
+    @Override
+    public void updateTask(Task task) {
+        super.updateTask(task);
+        try {
+            save(); // Сохраняем изменения после обновления задачи
+        } catch (IOException e) {
+            e.fillInStackTrace(); // Обработка ошибки сохранения
+        }
+
+    }
+
+    @Override
+    public void updateEpic(Epic epic) {
+        super.updateEpic(epic);
+        try {
+            save(); // Сохраняем изменения после обновления эпика
+        } catch (IOException e) {
+            e.fillInStackTrace(); // Обработка ошибки сохранения
+        }
+    }
+
+    @Override
+    public void updateSubtask(Subtask subtask) {
+        super.updateSubtask(subtask);
+        try {
+            save();
+        } catch (IOException e) {
+            e.fillInStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteTaskById(int id) {
+        super.deleteTaskById(id);
+        try {
+            save();
+        } catch (IOException e) {
+            e.fillInStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteEpicById(int id) {
+        super.deleteEpicById(id);
+        try {
+            save();
+        } catch (IOException e) {
+            e.fillInStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteSubtaskById(int id) {
+        super.deleteSubtaskById(id);
+        try {
+            save();
+        } catch (IOException e) {
+            e.fillInStackTrace();
+        }
     }
 }
