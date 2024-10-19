@@ -16,13 +16,13 @@ public class EpicTest {
     }
 
     @Test
-    public void testEpicStatusWhenNoSubtasks() {
+    public void testEpicStatus_NoSubtasks_ShouldBeNew() {
         assertEquals(Status.NEW, taskManager.getEpicById(epic.getId()).getStatus(),
                 "Epic status should be NEW when there are no subtasks");
     }
 
     @Test
-    public void testEpicStatusWithAllNewSubtasks() {
+    public void testEpicStatus_AllSubtasksNew_ShouldBeNew() {
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.now(), epic.getId());
         Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW,
@@ -36,7 +36,7 @@ public class EpicTest {
     }
 
     @Test
-    public void testEpicStatusWithAllDoneSubtasks() {
+    public void testEpicStatus_AllSubtasksDone_ShouldBeDone() {
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.DONE,
                 Duration.ofMinutes(60), LocalDateTime.now(), epic.getId());
         Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.DONE,
@@ -50,7 +50,7 @@ public class EpicTest {
     }
 
     @Test
-    public void testEpicStatusWithNewAndInProgressSubtasks() {
+    public void testEpicStatus_MixedSubtaskStatuses_ShouldBeInProgress() {
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW,
                 Duration.ofMinutes(60), LocalDateTime.now(), epic.getId());
         Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.IN_PROGRESS,
@@ -64,7 +64,7 @@ public class EpicTest {
     }
 
     @Test
-    public void testEpicStatusWithAllInProgressSubtasks() {
+    public void testEpicStatus_AllSubtasksInProgress_ShouldBeInProgress() {
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.IN_PROGRESS,
                 Duration.ofMinutes(60), LocalDateTime.now(), epic.getId());
         Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.IN_PROGRESS,
