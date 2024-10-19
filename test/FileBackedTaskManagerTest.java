@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,13 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Override
     public void setUp() {
         taskManager = new FileBackedTaskManager(testFile);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        if (testFile.exists() && !testFile.delete()) {
+            System.err.println("Failed to delete test file: " + testFile.getAbsolutePath());
+        }
     }
 
     @Test
