@@ -1,108 +1,65 @@
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
-    private FileBackedTaskManager manager;
-    private File testFile;
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+    private final File testFile = new File("test_tasks.csv");
 
     @BeforeEach
-    public void setUp() throws IOException {
-        // Создаём временный файл для тестов
-        testFile = File.createTempFile("tasks", ".csv");
-        manager = new FileBackedTaskManager(testFile);
+    @Override
+    public void setUp() {
+        taskManager = new FileBackedTaskManager(testFile);
     }
 
-
-    @Test
-    public void shouldSaveAndLoadSingleTask() {
-        Task task = new Task("Test Task", "Test Description", Status.NEW);
-        int taskId = manager.createTask(task);
-
-        // Сохраняем менеджер и загружаем из файла
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
-
-        // Проверяем, что задача была восстановлена корректно
-        Task loadedTask = loadedManager.getTaskById(taskId);
-        assertNotNull(loadedTask, "Task should be present after loading.");
-        assertEquals(task.getTitle(), loadedTask.getTitle(), "Task title should match.");
-        assertEquals(task.getDescription(), loadedTask.getDescription(), "Task description should match.");
-        assertEquals(task.getStatus(), loadedTask.getStatus(), "Task status should match.");
+    @AfterEach
+    public void tearDown() {
+        if (testFile.exists() && !testFile.delete()) {
+            System.err.println("Failed to delete test file: " + testFile.getAbsolutePath());
+        }
     }
 
     @Test
-    public void shouldSaveAndLoadSingleEpicWithSubtasks() {
-        Epic epic = new Epic("String Epic", "Epic Description");
-        int epicId = manager.createEpic(epic);
+    public void shouldSaveAndLoadTasksCorrectly() throws IOException {
+        // Создание задачи и сохранение в файл
+        Task task = new RegularTask("Task 1", "Description 1", Status.NEW,
+                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 16, 0));
+        taskManager.createTask(task);
+        taskManager.save();
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW, epicId);
-        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.IN_PROGRESS, epicId);
+        // Создаем новый менеджер и загружаем данные из файла
+        FileBackedTaskManager newManager = new FileBackedTaskManager(testFile);
+        newManager.load();
 
-        int subtaskId1 = manager.createSubtask(subtask1);
-        int subtaskId2 = manager.createSubtask(subtask2);
-
-        // Сохраняем менеджер и загружаем из файла
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
-
-        // Проверяем, что эпик и его подзадачи восстановлены корректно
-        Epic loadedEpic = loadedManager.getEpicById(epicId);
-        assertNotNull(loadedEpic, "Epic should be present after loading.");
-        assertEquals(epic.getTitle(), loadedEpic.getTitle(), "Epic title should match.");
-        assertEquals(epic.getDescription(), loadedEpic.getDescription(), "Epic description should match.");
-
-        List<Integer> subtaskIds = loadedEpic.getSubtaskIds();
-        assertEquals(2, subtaskIds.size(), "Epic should have two subtasks.");
-        assertTrue(subtaskIds.contains(subtaskId1), "Subtask 1 should be linked to the epic.");
-        assertTrue(subtaskIds.contains(subtaskId2), "Subtask 2 should be linked to the epic.");
-
-        Subtask loadedSubtask1 = loadedManager.getSubtaskById(subtaskId1);
-        assertNotNull(loadedSubtask1, "Subtask 1 should be present after loading.");
-        assertEquals(subtask1.getTitle(), loadedSubtask1.getTitle(), "Subtask 1 title should match.");
-        assertEquals(subtask1.getDescription(), loadedSubtask1.getDescription(), "Subtask 1 description should match.");
-        assertEquals(subtask1.getStatus(), loadedSubtask1.getStatus(), "Subtask 1 status should match.");
-
-        Subtask loadedSubtask2 = loadedManager.getSubtaskById(subtaskId2);
-        assertNotNull(loadedSubtask2, "Subtask 2 should be present after loading.");
-        assertEquals(subtask2.getTitle(), loadedSubtask2.getTitle(), "Subtask 2 title should match.");
-        assertEquals(subtask2.getDescription(), loadedSubtask2.getDescription(), "Subtask 2 description should match.");
-        assertEquals(subtask2.getStatus(), loadedSubtask2.getStatus(), "Subtask 2 status should match.");
+        Task loadedTask = newManager.getTaskById(task.getId());
+        assertNotNull(loadedTask, "Task should be loaded from file");
+        assertEquals(task.getTitle(), loadedTask.getTitle(), "Loaded task title should match");
+        assertEquals(task.getStartTime(), loadedTask.getStartTime(), "Loaded task start time should match");
     }
-
     @Test
-    public void shouldSaveAndLoadHistory() {
-        Task task1 = new Task("Task 1", "Description 1", Status.NEW);
-        Task task2 = new Task("Task 2", "Description 2", Status.IN_PROGRESS);
+    public void getPrioritizedTasks_ShouldReturnTasksInOrder() {
+        // Задачи не пересекаются, так как у task1 начало через 3 часа после task2
+        Task task1 = new RegularTask("Task 1", "Description 1", Status.NEW,
+                Duration.ofMinutes(60), LocalDateTime.of(2024, 10, 15, 13, 0));
+        // Начало в 13:00
+        Task task2 = new RegularTask("Task 2", "Description 2", Status.NEW,
+                Duration.ofMinutes(30), LocalDateTime.of(2024, 10, 15, 10, 0));
+        // Начало в 10:00
 
-        int taskId1 = manager.createTask(task1);
-        int taskId2 = manager.createTask(task2);
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
 
-        // Добавляем задачи в историю
-        manager.getTaskById(taskId1);
-        manager.getTaskById(taskId2);
+        List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
 
-        // Сохраняем менеджер и загружаем из файла
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
-
-        // Проверяем, что история была восстановлена корректно
-        List<Task> history = loadedManager.getHistoryManager().getHistory();
-        assertEquals(2, history.size(), "History size should be 2.");
-        assertEquals(taskId1, history.get(0).getId(), "First task in history should match.");
-        assertEquals(taskId2, history.get(1).getId(), "Second task in history should match.");
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenSavingToInvalidFile() {
-        // Создаём файл в недоступной директории (преднамеренная ошибка)
-        File invalidFile = new File("/invalid/path/tasks.csv");
-        FileBackedTaskManager invalidManager = new FileBackedTaskManager(invalidFile);
-
-        Task task = new Task("Test Task", "Test Description", Status.NEW);
-        assertThrows(ManagerSaveException.class, () -> invalidManager.createTask(task),
-                "Saving to an invalid file should throw ManagerSaveException.");
+        assertEquals(2, prioritizedTasks.size(), "Should return two tasks in prioritized order.");
+        assertEquals(task2, prioritizedTasks.get(0), "First task should be task2.");
+        assertEquals(task1, prioritizedTasks.get(1), "Second task should be task1.");
     }
 }

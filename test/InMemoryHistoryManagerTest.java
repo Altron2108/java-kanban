@@ -1,6 +1,8 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,76 +10,111 @@ import static org.junit.jupiter.api.Assertions.*;
 class InMemoryHistoryManagerTest {
 
     private HistoryManager historyManager;
-    private Task task1;
-    private Task task2;
-    private Task task3;
+    private Epic epic1;
+    private Subtask subtask1;
+    private Subtask subtask2;
 
     @BeforeEach
     void setUp() {
         historyManager = new InMemoryHistoryManager();
-        task1 = new Task(1, "Task 1", "Description 1", Status.NEW);
-        task2 = new Task(2, "Task 2", "Description 2", Status.IN_PROGRESS);
-        task3 = new Task(3, "Task 3", "Description 3", Status.DONE);
+
+        epic1 = new Epic("Epic 1", "Epic Description");
+        epic1.setId(1); // Уникальный ID для epic1
+
+        subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW,
+                Duration.ofMinutes(60), LocalDateTime.now(), epic1.getId());
+        subtask1.setId(2); // Уникальный ID для subtask1
+
+        subtask2 = new Subtask("Subtask 2", "Description 2", Status.IN_PROGRESS,
+                Duration.ofMinutes(120), LocalDateTime.now().plusMinutes(60), epic1.getId());
+        subtask2.setId(3); // Уникальный ID для subtask2
     }
+
 
     @Test
     void addTasksToHistory_HistoryPreservesCorrectOrder() {
-        // Добавляем задачи в историю
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.add(task3);
+        historyManager.add(epic1);
+        historyManager.add(subtask1);
+        historyManager.add(subtask2);
 
         List<Task> history = historyManager.getHistory();
 
-        // Проверяем, что порядок соответствует добавлению
         assertEquals(3, history.size(), "History should contain three tasks.");
-        assertEquals(task1, history.get(0), "First task should be task1.");
-        assertEquals(task2, history.get(1), "Second task should be task2.");
-        assertEquals(task3, history.get(2), "Third task should be task3.");
+        // Исправлено количество
+        assertEquals(epic1, history.get(0), "First task should be epic1.");
+        assertEquals(subtask1, history.get(1), "Second task should be subtask1.");
+        assertEquals(subtask2, history.get(2), "Third task should be subtask2.");
     }
 
     @Test
     void addSameTaskToHistory_TaskMovesToEnd() {
-        // Добавляем задачи в историю
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.add(task3);
-        // Повторно добавляем task2
-        historyManager.add(task2);
+        historyManager.add(epic1);
+        historyManager.add(subtask1);
+        historyManager.add(subtask2);
+        historyManager.add(subtask1); // Добавляем subtask1 снова
 
         List<Task> history = historyManager.getHistory();
 
-        // Проверяем, что task2 переместилась в конец
         assertEquals(3, history.size(), "History should still contain three tasks.");
-        assertEquals(task1, history.get(0), "First task should be task1.");
-        assertEquals(task3, history.get(1), "Second task should be task3.");
-        assertEquals(task2, history.get(2), "Third task should be task2.");
+        assertEquals(epic1, history.get(0), "First task should be epic1.");
+        assertEquals(subtask2, history.get(1), "Second task should be subtask2.");
+        assertEquals(subtask1, history.get(2), "Third task should be subtask1.");
     }
 
     @Test
     void addDuplicateTask_HistoryDoesNotContainDuplicates() {
-        // Добавляем одну задачу несколько раз
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.add(task1); // task1 должна переместиться в конец
-        historyManager.add(task1); // task1 должна остаться в конце
+        historyManager.add(epic1);
+        historyManager.add(subtask1);
+        historyManager.add(epic1); // epic1 должна переместиться в конец
+        historyManager.add(epic1); // epic1 должна остаться в конце
 
         List<Task> history = historyManager.getHistory();
 
-        // Проверяем, что истории содержит только две уникальные задачи и task1 в конце
         assertEquals(2, history.size(), "History should contain two unique tasks.");
-        assertEquals(task2, history.get(0), "First task should be task2.");
-        assertEquals(task1, history.get(1), "Second task should be task1.");
+        assertEquals(subtask1, history.get(0), "First task should be subtask1.");
+        assertEquals(epic1, history.get(1), "Second task should be epic1.");
     }
 
     @Test
     void getHistory_HistoryReturnsUnmodifiableList() {
-        // Добавляем задачи в историю
-        historyManager.add(task1);
-        historyManager.add(task2);
+        historyManager.add(epic1);
+        historyManager.add(subtask1);
+
+        List<Task> history = historyManager.getHistory();
+        assertThrows(UnsupportedOperationException.class, () -> history.add(subtask2),
+                "History should be unmodifiable.");
+    }
+
+    @Test
+    void removeTaskFromHistory_TaskIsRemoved() {
+        historyManager.add(epic1);
+        historyManager.add(subtask1);
+        historyManager.remove(subtask1.getId());
 
         List<Task> history = historyManager.getHistory();
 
+        assertEquals(1, history.size(), "History should contain one task after removal.");
+        assertEquals(epic1, history.getFirst(), "Remaining task should be epic1.");
+    }
 
+    @Test
+    void removeNonExistentTask_HistoryRemainsUnchanged() {
+        historyManager.add(epic1);
+        historyManager.add(subtask1);
+
+        // Попытка удалить подзадачу, которая не была добавлена
+        historyManager.remove(subtask2.getId());
+
+        List<Task> history = historyManager.getHistory();
+
+        assertEquals(2, history.size(), "History should remain unchanged."); // Исправлено количество
+        assertEquals(epic1, history.get(0), "First task should still be epic1.");
+        assertEquals(subtask1, history.get(1), "Second task should still be subtask1.");
+    }
+
+    @Test
+    void getHistory_WhenNoTasksAdded_ReturnsEmptyList() {
+        List<Task> history = historyManager.getHistory();
+        assertTrue(history.isEmpty(), "History should be empty when no tasks have been added.");
     }
 }

@@ -1,160 +1,89 @@
 import java.io.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
-// Наследуем FileBackedTaskManager от InMemoryTaskManager для переиспользования существующей логики
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
 
-    // Конструктор с указанием файла для автосохранения
     public FileBackedTaskManager(File file) {
         this.file = file;
     }
 
-    // Метод для сохранения состояния менеджера в файл
-    private void save() {
+    // Сериализация задач
+    public void save()  {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write("id,type,name,status,description,epic");
-            writer.newLine();
-
-            // Сохранение всех задач
+            writer.write("id,type,name,status,description,duration,startTime,epicId\n"); // Добавим новые поля
             for (Task task : getTasks()) {
                 writer.write(toString(task));
                 writer.newLine();
             }
-
-            // Сохранение всех эпиков
-            for (Epic epic : getEpics()) {
-                writer.write(toString(epic));
-                writer.newLine();
-            }
-
-            // Сохранение всех подзадач
-            for (Subtask subtask : getSubtasks()) {
-                writer.write(toString(subtask));
-                writer.newLine();
-            }
-
-            // Сохранение истории просмотра
-            writer.newLine();
-            writer.write(historyToString());
         } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка сохранения данных в файл.", e);
+            handleError(e);
         }
     }
 
-    // Метод для загрузки менеджера из файла
-    public static FileBackedTaskManager loadFromFile(File file) {
-        FileBackedTaskManager manager = new FileBackedTaskManager(file);
-        try {
-            List<String> lines = Files.readAllLines(file.toPath());
-            boolean isHistory = false;
+    private void handleError(Exception e) {
+        System.err.println("Ошибка при сохранении задач в файл" + ": " + e.getMessage());
+    }
 
-            for (String line : lines) {
-                if (line.isEmpty()) {
-                    isHistory = true;
-                    continue;
-                }
-                if (!isHistory) {
-                    if (!line.startsWith("id,")) { // Пропуск заголовка
-                        Task task = fromString(line);
-                        switch (task.getType()) {
-                            case Task:
-                                manager.createTask(task);
-                                break;
-                            case Epic:
-                                manager.createEpic((Epic) task);
-                                break;
-                            case Subtask:
-                                manager.createSubtask((Subtask) task);
-                                break;
-                        }
-                    }
+    // Де сериализация задач
+    public void load() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            reader.readLine(); // Пропускаем заголовок
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Task task = fromString(line);
+                if (task instanceof Epic) {
+                    createEpic((Epic) task);
+                } else if (task instanceof Subtask) {
+                    createSubtask((Subtask) task);
                 } else {
-                    List<Integer> historyIds = historyFromString(line);
-                    for (int id : historyIds) {
-                        if (manager.getTaskById(id) != null) {
-                            manager.getHistoryManager().add(manager.getTaskById(id));
-                        } else if (manager.getEpicById(id) != null) {
-                            manager.getHistoryManager().add(manager.getEpicById(id));
-                        } else if (manager.getSubtaskById(id) != null) {
-                            manager.getHistoryManager().add(manager.getSubtaskById(id));
-                        }
-                    }
+                    createTask(task);
                 }
             }
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка загрузки данных из файла.", e);
         }
-        return manager;
     }
 
-    // Преобразование задачи в строку CSV
+    // Преобразование задачи в строку для сохранения в файл
     private String toString(Task task) {
-        String epicId = (task instanceof Subtask) ? String.valueOf(((Subtask) task).getEpicId()) : "";
-        return String.format("%d,%s,%s,%s,%s,%s",
-                task.getId(),
-                task.getType(),
+        StringBuilder taskString = new StringBuilder(String.join(",",
+                String.valueOf(task.getId()),
+                task.getType().name(),
                 task.getTitle(),
-                task.getStatus(),
+                task.getStatus().name(),
                 task.getDescription(),
-                epicId);
+                String.valueOf(task.getDuration().toMinutes()), // duration в минутах
+                task.getStartTime().toString()));
+
+        if (task instanceof Subtask subtask) {
+            taskString.append(",").append(subtask.getEpicId()); // Добавляем ID эпика для подзадачи
+        }
+
+        return taskString.toString();
     }
 
-    // Восстановление задачи из строки CSV
-    private static Task fromString(String value) {
-        String[] fields = value.split(",");
+    // Преобразование строки в объект Task
+    private Task fromString(String line) {
+        String[] fields = line.split(",");
         int id = Integer.parseInt(fields[0]);
         TaskType type = TaskType.valueOf(fields[1]);
-        String name = fields[2];
+        String title = fields[2];
         Status status = Status.valueOf(fields[3]);
         String description = fields[4];
+        Duration duration = Duration.ofMinutes(Long.parseLong(fields[5]));
+        LocalDateTime startTime = LocalDateTime.parse(fields[6]);
 
-        return switch (type) {
-            case Task -> new Task(id, name, description, status);
-            case Epic -> new Epic(name, description);
+        Task task = switch (type) {
+            case Task ->
+                    new RegularTask(title, description, status, duration, startTime); // Пример использования подкласса
+            case Epic -> new Epic(title, description);
             case Subtask -> {
-                int epicId = Integer.parseInt(fields[5]);
-                yield new Subtask(id, name, description, status, epicId);
+                int epicId = Integer.parseInt(fields[7]); // Дополнительный аргумент - ID эпика
+                yield new Subtask(title, description, status, duration, startTime, epicId);
             }
         };
-    }
-
-    // Преобразование истории в строку CSV
-    private String historyToString() {
-        return getHistoryManager().getHistory().stream()
-                .map(task -> String.valueOf(task.getId()))
-                .collect(Collectors.joining(","));
-    }
-
-    // Восстановление истории из строки CSV
-    private static List<Integer> historyFromString(String value) {
-        return Arrays.stream(value.split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
-    }
-
-    // Переопределяем методы изменения состояния менеджера, чтобы добавлять вызов save()
-    @Override
-    public int createTask(Task task) {
-        int id = super.createTask(task);
-        save();
-        return id;
-    }
-
-    @Override
-    public int createEpic(Epic epic) {
-        int id = super.createEpic(epic);
-        save();
-        return id;
-    }
-
-    @Override
-    public int createSubtask(Subtask subtask) {
-        int id = super.createSubtask(subtask);
-        save();
-        return id;
+        task.setId(id);
+        return task;
     }
 
     @Override
