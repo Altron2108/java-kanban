@@ -3,14 +3,14 @@ import java.time.LocalDateTime;
 
 public abstract class Task {
     private int id;
-    private String title; // Убрали final
-    private String description; // Убрали final
-    private Status status; // Убрали final
-    private final Duration duration;
+    private String title;
+    private String description;
+    private Status status;
+    private Duration duration;
     private LocalDateTime startTime;
 
     public Task(String title, String description, Status status, Duration duration, LocalDateTime startTime) {
-        this.id = -1; // По умолчанию id -1
+        this.id = -1;
         this.title = title;
         this.description = description;
         this.status = status;
@@ -34,7 +34,7 @@ public abstract class Task {
         return title;
     }
 
-    public void setTitle(String title) { // Добавили метод
+    public void setTitle(String title) {
         this.title = title;
     }
 
@@ -42,7 +42,7 @@ public abstract class Task {
         return description;
     }
 
-    public void setDescription(String description) { // Добавили метод
+    public void setDescription(String description) {
         this.description = description;
     }
 
@@ -50,8 +50,12 @@ public abstract class Task {
         return status;
     }
 
-    public void setStatus(Status status) { // Добавили метод
+    public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
     }
 
     public Duration getDuration() {
@@ -63,8 +67,9 @@ public abstract class Task {
     }
 
     public LocalDateTime getEndTime() {
-        return startTime.plus(duration);
+        return startTime != null && duration != null ? startTime.plus(duration) : null;
     }
 
     public abstract TaskType getType();
 }
+

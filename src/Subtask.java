@@ -2,15 +2,15 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class Subtask extends Task {
-    private final int epicId;
+    private final Integer epicId; // Изменяем на объектный тип Integer
 
     public Subtask(String title, String description, Status status, Duration duration,
-                   LocalDateTime startTime, int epicId) {
+                   LocalDateTime startTime, Integer epicId) {
         super(title, description, status, duration, startTime);
         this.epicId = epicId;
     }
 
-    public int getEpicId() {
+    public Integer getEpicId() {
         return epicId;
     }
 
