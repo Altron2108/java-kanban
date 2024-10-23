@@ -1,17 +1,20 @@
+import com.google.gson.annotations.Expose;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
-    private final List<Integer> subtaskIds;
-    private Duration duration;
-    private LocalDateTime endTime;
+    @Expose
+    private final List<Integer> subtaskIds; // Список идентификаторов подзадач
+    @Expose
+    private LocalDateTime endTime;           // Время завершения эпика
 
     public Epic(String title, String description) {
-        super(title, description, Status.NEW, Duration.ZERO, null);
+        super(title, description, Status.NEW, Duration.ZERO, null); // Вызываем конструктор суперкласса
         this.subtaskIds = new ArrayList<>();
-        this.duration = Duration.ZERO;
+        this.endTime = null; // Инициализируем время завершения
     }
 
     public List<Integer> getSubtaskIds() {
@@ -26,37 +29,30 @@ public class Epic extends Task {
         subtaskIds.remove(Integer.valueOf(subtaskId));
     }
 
-    // Добавление метода для очистки подзадач
     public void clearSubtasks() {
-        subtaskIds.clear();
-    }
-
-    public Duration getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Duration duration) {
-        this.duration = duration;
+        subtaskIds.clear(); // Очистка списка подзадач
     }
 
     public LocalDateTime getEndTime() {
         return endTime;
     }
 
-    // Добавляем метод для установки endTime
     public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
+        this.endTime = endTime; // Установка времени завершения
+    }
+
+    @Override
+    public void setDuration(Duration duration) {
+        super.setDuration(duration); // Вызываем метод родительского класса
     }
 
     public void updateEpicTime(List<Subtask> subtasks) {
         if (subtasks.isEmpty()) {
             this.setStartTime(null);
-            this.setDuration(Duration.ZERO);
             this.setEndTime(null);
         } else {
             LocalDateTime earliestStartTime = null;
             LocalDateTime latestEndTime = null;
-            Duration totalDuration = Duration.ZERO;
 
             for (Subtask subtask : subtasks) {
                 if (earliestStartTime == null || subtask.getStartTime().isBefore(earliestStartTime)) {
@@ -65,18 +61,16 @@ public class Epic extends Task {
                 if (latestEndTime == null || subtask.getEndTime().isAfter(latestEndTime)) {
                     latestEndTime = subtask.getEndTime();
                 }
-                totalDuration = totalDuration.plus(subtask.getDuration());
             }
 
             this.setStartTime(earliestStartTime);
-            this.setDuration(totalDuration);
             this.setEndTime(latestEndTime);
         }
     }
 
     @Override
     public TaskType getType() {
-        return TaskType.Epic;
+        return TaskType.Epic; // Возвращаем тип задачи
     }
 
     @Override
@@ -87,7 +81,7 @@ public class Epic extends Task {
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
                 ", subtaskIds=" + subtaskIds +
-                ", duration=" + duration.toMinutes() + " minutes" +
+                ", duration=" + getDuration().toMinutes() + " minutes" + // Используем метод getDuration() из Task
                 ", startTime=" + getStartTime() +
                 ", endTime=" + endTime +
                 '}';
