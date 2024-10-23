@@ -10,7 +10,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Сериализация задач
-    public void save()  {
+    public void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,duration,startTime,epicId\n"); // Добавим новые поля
             for (Task task : getTasks()) {
