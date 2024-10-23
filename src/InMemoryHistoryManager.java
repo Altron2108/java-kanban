@@ -42,6 +42,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         return Collections.unmodifiableList(history);
     }
 
+    // Метод для очистки истории
+    @Override
+    public void clear() {
+        nodeMap.clear();  // Очищаем мапу узлов
+        head = null;      // Устанавливаем голову в null
+        tail = null;      // Устанавливаем хвост в null
+    }
+
     private void linkLast(Task task) {
         Node<Task> newNode = new Node<>(task);
         if (tail == null) {
